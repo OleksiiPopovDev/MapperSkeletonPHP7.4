@@ -11,7 +11,7 @@ use ReflectionProperty;
  * Class Mapper
  * @package App\Mappers
  */
-final class Mapper
+class Mapper
 {
     /**
      * @return array|Collection
