@@ -1,0 +1,26 @@
+{
+  "name": "aleksey-popov/mapper-skeleton",
+  "description": "Mapper Constructor",
+  "type": "library",
+  "keywords": ["pattern", "mapper", "contstructor", "laravel"],
+  "homepage": "http://popov.photos",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aleksey Popov",
+      "email": "popov.scar@gmail.com",
+      "homepage": "https://popov.photos"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "laravel/framework": "^5.0",
+    "illuminate/support": "^6.9|^7.0|^8.0",
+    "illuminate/collections": "^6.9|^7.0|^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Popov\\Aleksey\\Mapper\\": "src/"
+    }
+  }
+}
