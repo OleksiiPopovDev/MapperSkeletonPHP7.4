@@ -1,6 +1,6 @@
 <?php
 
-namespace Popov\Aleksey;
+namespace PopovAleksey;
 
 use Illuminate\Support\Collection;
 use ReflectionClass;
