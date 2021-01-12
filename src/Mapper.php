@@ -1,6 +1,6 @@
 <?php
 
-namespace PopovAleksey;
+namespace PopovAleksey\Mapper;
 
 use Illuminate\Support\Collection;
 use ReflectionClass;
