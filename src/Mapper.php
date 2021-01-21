@@ -92,7 +92,7 @@ class Mapper
             }
 
             if (class_exists($propertyType) && app($propertyType) instanceof Mapper) {
-                $value = app($propertyType)->handler($value);
+                $value = app($propertyType)->handler((array) $value);
                 $this->$setterMethodName($value);
 
                 return;
@@ -127,7 +127,7 @@ class Mapper
 
         return collect($value)->map(function ($arrayItem) use ($classIntoArray, $handler) {
             if ($handler === true) {
-                return app($classIntoArray)->handler($arrayItem);
+                return app($classIntoArray)->handler((array) $arrayItem);
             }
 
             return $this->getByClass($arrayItem);
