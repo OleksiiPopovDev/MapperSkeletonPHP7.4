@@ -39,7 +39,7 @@ class Mapper
             $getterMethodName = 'get' . ucfirst($propertyName);
 
             if (method_exists($classObject, $getterMethodName) === false) {
-                return null;
+                return [null => null];
             }
 
             $value = $classObject->$getterMethodName();
@@ -121,7 +121,7 @@ class Mapper
 
         $classIntoArray = data_get($match, 1);
 
-        if (!class_exists($classIntoArray)) {
+        if (!class_exists($classIntoArray) || !$classIntoArray instanceof Mapper) {
             return $value;
         }
 
