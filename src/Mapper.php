@@ -49,7 +49,7 @@ class Mapper
 
             $value = $classObject->$getterMethodName();
 
-            if (class_exists($propertyType) && app($propertyType) instanceof Mapper) {
+            if (!is_null($value) && class_exists($propertyType) && app($propertyType) instanceof Mapper) {
                 $value = $this->getByClass($value);
             }
 
