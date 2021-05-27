@@ -128,7 +128,7 @@ class Mapper
 
         $classIntoArray = data_get($match, 1);
 
-        if (!class_exists($classIntoArray) || !$classIntoArray instanceof Mapper) {
+        if (!class_exists($classIntoArray) || !app($classIntoArray) instanceof Mapper) {
             return $value;
         }
 
