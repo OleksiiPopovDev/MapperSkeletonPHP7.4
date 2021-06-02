@@ -2,10 +2,10 @@
 
 namespace PopovAleksey\Mapper;
 
-use Illuminate\Support\Collection;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
+use Illuminate\Support\Collection;
 
 /**
  * Class Mapper
@@ -14,7 +14,7 @@ use ReflectionProperty;
 class Mapper
 {
     /**
-     * @return array|Collection
+     * @return array
      * @throws MapperException
      */
     public function toArray(): array
@@ -29,63 +29,54 @@ class Mapper
      */
     private function getByClass(Mapper $classObject): array
     {
-        try {
-            $className  = get_class($classObject);
-            $properties = (new ReflectionClass($className))->getProperties(ReflectionProperty::IS_PRIVATE);
+        return $this->getProperties($classObject)
+            ->mapWithKeys(function (ReflectionProperty $property) use ($classObject) {
+                $propertyName     = $property->getName();
+                $propertyType     = $property->getType()->getName();
+                $propertyComment  = $property->getDocComment();
+                $getterMethodName = 'get' . str_replace("_", "", ucwords(ucfirst($propertyName), " /_"));
 
-        } catch (ReflectionException $exception) {
-            throw new MapperException('Incorrect DTO class. Check a manual. ReflectionClass Exception');
-        }
+                if (method_exists($classObject, $getterMethodName) === false) {
+                    return [null => null];
+                }
 
-        return collect($properties)->mapWithKeys(function (ReflectionProperty $property) use ($classObject) {
-            $propertyName     = $property->getName();
-            $propertyType     = $property->getType()->getName();
-            $propertyComment  = $property->getDocComment();
-            $getterMethodName = 'get' . str_replace("_", "", ucwords(ucfirst($propertyName), " /_"));
+                $value = $classObject->$getterMethodName();
 
-            if (method_exists($classObject, $getterMethodName) === false) {
-                return [null => null];
-            }
+                if (!is_null($value) && class_exists($propertyType) && app($propertyType) instanceof Mapper) {
+                    $value = $this->getByClass($value);
+                }
 
-            $value = $classObject->$getterMethodName();
+                if ($propertyType == 'array') {
+                    $value = $this->collectionArray($value, $propertyComment, false);
+                }
 
-            if (!is_null($value) && class_exists($propertyType) && app($propertyType) instanceof Mapper) {
-                $value = $this->getByClass($value);
-            }
+                return [$propertyName => $value];
+            })->reject(function ($item) {
 
-            if ($propertyType == 'array') {
-                $value = $this->collectionArray($value, $propertyComment, false);
-            }
-
-            return [$propertyName => $value];
-        })->reject(function ($item) {
-
-            return $item === null;
-        })->toArray();
+                return $item === null;
+            })->toArray();
     }
 
     /**
-     * @param array $data
+     * @param array|null $data
      * @return $this
      * @throws MapperException
      */
-    public function handler(array $data): self
+    public function handler(?array $data): self
     {
-        try {
-            $className  = get_class($this);
-            $properties = (new ReflectionClass($className))->getProperties(ReflectionProperty::IS_PRIVATE);
-
-        } catch (ReflectionException $exception) {
-            throw new MapperException('Incorrect DTO class. Check a manual. ReflectionClass Exception');
+        if ($data === null) {
+            return $this;
         }
 
-        $properties = collect($properties)->map(function ($property) {
-            return [
-                'name'    => $property->getName(),
-                'type'    => $property->getType()->getName(),
-                'comment' => $property->getDocComment(),
-            ];
-        })->keyBy('name');
+        $properties = $this->getProperties($this)
+            ->map(function (ReflectionProperty $property) {
+                return [
+                    'name'    => $property->getName(),
+                    'type'    => $property->getType()->getName(),
+                    'comment' => $property->getDocComment(),
+                ];
+            })
+            ->keyBy('name');
 
         collect($data)->each(function ($value, $field) use ($properties) {
             $property         = $properties->get($field);
@@ -116,11 +107,27 @@ class Mapper
     }
 
     /**
-     * @param array $value
-     * @param string $comment
-     * @param bool $handler
-     * @return array
+     * @param $class
+     * @return Collection
      * @throws MapperException
+     */
+    private function getProperties($class): Collection
+    {
+        try {
+            $properties = (new ReflectionClass(get_class($class)))->getProperties(ReflectionProperty::IS_PRIVATE);
+
+            return collect($properties);
+
+        } catch (ReflectionException $exception) {
+            throw new MapperException('Incorrect DTO class. Check a manual. ReflectionClass Exception');
+        }
+    }
+
+    /**
+     * @param array  $value
+     * @param string $comment
+     * @param bool   $handler
+     * @return array
      */
     private function collectionArray(array $value, string $comment, bool $handler = true): array
     {
